@@ -2,4 +2,4 @@
 	export let path, text;
 </script>
 
-<a class='px-2 hover:underline' href={path}>{text}</a>
+<a href={path} class='px-2 hover:underline'>{text}</a>

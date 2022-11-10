@@ -1,4 +1,5 @@
 <script>
+	import { enhance } from '$app/forms';
 	import { page } from '$app/stores';
 	import Label from '$lib/components/Label.svelte';
 	import SubmitButton from '$lib/components/SubmitButton.svelte';
@@ -11,7 +12,7 @@
 	<p>Post create successful!</p>
 {/if}
 
-<form class='flex flex-col' method='POST'>
+<form use:enhance class='flex flex-col' method='POST'>
 	<Label text='title'>
 		<input name='title' type='text' bind:value={title} />
 	</Label>

@@ -1,23 +1,43 @@
 <script>
+	import { enhance } from '$app/forms';
 	import { page } from '$app/stores';
-	import Label from '$lib/components/Label.svelte';
+	import { db } from '$lib/db.js';
+	import { goto } from '$app/navigation';
+	import DeleteButton from '$lib/components/DeleteButton.svelte';
 	import SubmitButton from '$lib/components/SubmitButton.svelte';
+	import Label from '$lib/components/Label.svelte';
 
 	const { post, tags } = $page.data;
 	let { title, content, tag_id, id, created_at, updated_at } = post.data;
-	let confirmTitle;
+	let status;
+
+	const deletePost = async () => {
+		if (window.confirm('Are you sure you want to delete this post?')) {
+			const { error: deleteError } = await db.from('posts').delete().eq('id', id);
+			if (deleteError) {
+				console.error(deleteError);
+				status = 'Something went wrong';
+			} else {
+				await goto('/');
+			}
+		}
+	};
 </script>
 
 {#if $page.form?.success}
 	<p>Post update successful!</p>
 {/if}
 
-<form class='flex flex-col' method='POST' action='?/update'>
+{#if status}
+	<p>{status}</p>
+{/if}
+
+<form use:enhance class='flex flex-col' method='POST'>
 	<Label text='title'>
 		<input name='title' type='text' bind:value={title} />
 	</Label>
 	<Label text='content'>
-		<textarea class='h-96' name='content' bind:value={content}></textarea>
+		<textarea name='content' class='h-96' bind:value={content}></textarea>
 	</Label>
 	<Label text='tag'>
 		<select name='tag_id' bind:value={tag_id}>
@@ -31,20 +51,13 @@
 	</Label>
 
 	{#if $page.data?.session}
-		<input type='hidden' name='id' bind:value={id} />
-		<input type='hidden' name='created_at' bind:value={created_at} />
-		<input type='hidden' name='updated_at' bind:value={updated_at} />
+		<input hidden name='id' value={id} />
+		<input hidden name='created_at' value={created_at} />
+		<input hidden name='updated_at' value={updated_at} />
 
-		<SubmitButton text='Update post' />
-		<button
-			formaction='?/delete'
-			class=
-				'w-1/3 px-4 py-2 mt-8 border rounded border-black hover:bg-black hover:text-white'
-		>
-			Delete
-		</button>
-		<Label text='to delete, enter the post title and click delete'>
-			<input type='text' placeholder='post title' class='italic' name='confirmTitle' bind:value={confirmTitle} />
-		</Label>
+		<DeleteButton handleClick={deletePost} />
+		<SubmitButton text='Update post' disabled={false} />
+	{:else}
+		<SubmitButton text='Update post' disabled={true} />
 	{/if}
 </form>
